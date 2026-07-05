@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Shipcast",
     "shortDescription": "Post to X and manage Shipcast X accounts",
-    "longDescription": "Use Shipcast from local agents to inspect connected X accounts, start X account connection flows, post directly to X through a product account, preview AI product updates, publish Shipcast updates, and review publication history. Authorization is handled through Shipcast's browser or headless device flow; users do not paste API keys into MCP config.",
+    "longDescription": "Use Shipcast from local agents to inspect connected X accounts, start X account connection flows, post directly to X through a product account, preview AI product updates, publish Shipcast updates, review publication history, and render Shipcast results as in-conversation widgets. Authorization is handled through Shipcast's browser or headless device flow; users do not paste API keys into MCP config.",
     "developerName": "Shipcast",
     "category": "Developer Tools",
     "capabilities": [
@@ -35,6 +35,7 @@
     "termsOfServiceURL": "https://shipcast.dev/terms",
     "defaultPrompt": [
       "List my Shipcast X accounts",
+      "Show my Shipcast X accounts as cards",
       "Post this update to X through my Shipcast product",
       "Preview and publish today's Shipcast product update"
     ],

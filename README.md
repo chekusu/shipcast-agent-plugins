@@ -2,7 +2,9 @@
 
 Install Shipcast in local agents without pasting API keys into MCP config. The
 plugin uses Shipcast's browser or headless device authorization flow and stores
-only a local Shipcast agent token.
+only a local Shipcast agent token. It also exposes a dependency-free MCP Apps
+widget so agents can render Shipcast account, preview, action, and publication
+results directly inside the conversation.
 
 ## Codex
 
@@ -30,6 +32,23 @@ node "$HOME/.codex/plugins/cache/shipcast/shipcast/0.1.0/mcp/server.mjs" status
 ```
 
 Restart the Codex session after install or update.
+
+### In-Conversation UI
+
+The plugin keeps the existing Shipcast data/action tools and adds one
+presentation-only render tool:
+
+- `shipcast_render_widget` uses `ui://widget/shipcast.html` as both
+  `_meta.ui.resourceUri` and `openai/outputTemplate`.
+- The widget resource is served through `resources/list` and `resources/read`
+  as `text/html;profile=mcp-app`.
+- Call the relevant Shipcast tool first, then call `shipcast_render_widget`
+  with selected result fields. The render tool returns concise
+  `structuredContent` for the model and sends full widget hydration data in
+  tool-result `_meta`.
+
+No `npm install` step is required; the MCP server, widget, and smoke tests use
+only Node built-ins.
 
 ## Claude Code
 
@@ -62,3 +81,15 @@ Agents that do not support Codex or Claude Code plugins can register the
 Shipcast MCP server manually from `plugins/shipcast/.mcp.json` and run
 `node ./mcp/server.mjs auth` or `node ./mcp/server.mjs auth --headless` before
 using the tools.
+
+## Local Smoke Test
+
+Run the stdio smoke test from this repository:
+
+```bash
+node scripts/smoke-stdio.mjs
+```
+
+The script starts `plugins/shipcast/mcp/server.mjs` over stdio and verifies
+`initialize`, `tools/list`, `resources/list`, `resources/read`, and
+`shipcast_render_widget` output shape.

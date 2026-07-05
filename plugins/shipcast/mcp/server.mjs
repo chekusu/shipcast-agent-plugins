@@ -17,6 +17,590 @@ const JsonRpcError = {
   INVALID_PARAMS: -32602,
   INTERNAL_ERROR: -32603,
 };
+const SHIPCAST_WIDGET_URI = "ui://widget/shipcast.html";
+const SHIPCAST_WIDGET_MIME_TYPE = "text/html;profile=mcp-app";
+const RENDER_VIEWS = [
+  "accounts",
+  "account",
+  "preview",
+  "publications",
+  "action",
+  "status",
+];
+const RENDER_STATUSES = ["ready", "success", "warning", "error", "info"];
+const MCP_TOOL_RESULT = Symbol("mcpToolResult");
+
+const SHIPCAST_WIDGET_HTML = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shipcast</title>
+  <style>
+    :root {
+      color: #0f172a;
+      background: #ffffff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color-scheme: light;
+      --shipcast-blue: #2563eb;
+      --shipcast-blue-dark: #1d4ed8;
+      --shipcast-slate: #64748b;
+      --shipcast-border: #e2e8f0;
+      --shipcast-soft: #f8fafc;
+      --shipcast-orange: #f97316;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: #ffffff; }
+    body { padding: 0; color: #0f172a; }
+    .shell {
+      width: 100%;
+      min-height: 100%;
+      padding: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .mark {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      border-radius: 8px;
+      box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14);
+    }
+    .brand-text {
+      min-width: 0;
+    }
+    .brand-name {
+      margin: 0;
+      color: #111827;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+    .brand-subtitle {
+      margin-top: 2px;
+      color: var(--shipcast-slate);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    .status {
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: var(--shipcast-blue);
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .hero {
+      border: 1px solid var(--shipcast-border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+    }
+    .hero h1 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 22px;
+      line-height: 1.14;
+      letter-spacing: 0;
+    }
+    .summary {
+      margin: 8px 0 0;
+      color: var(--shipcast-slate);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 24px;
+      max-width: 100%;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #475569;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .pill.blue { background: #eff6ff; color: #1d4ed8; }
+    .pill.green { background: #ecfdf5; color: #047857; }
+    .pill.orange { background: #fff7ed; color: #c2410c; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .card {
+      min-width: 0;
+      border: 1px solid var(--shipcast-border);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 13px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+    }
+    .card h2 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 15px;
+      line-height: 1.25;
+      letter-spacing: 0;
+      word-break: break-word;
+    }
+    .card p {
+      margin: 7px 0 0;
+      color: var(--shipcast-slate);
+      font-size: 13px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .detail {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      border: 1px solid var(--shipcast-border);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px;
+    }
+    .kv {
+      display: grid;
+      grid-template-columns: minmax(86px, 0.34fr) 1fr;
+      gap: 10px;
+      align-items: start;
+      min-width: 0;
+    }
+    .key {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.4;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .value {
+      min-width: 0;
+      color: #334155;
+      font-size: 13px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .actions, .steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--shipcast-blue-dark);
+      padding: 8px 11px;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-decoration: none;
+    }
+    .action.primary {
+      border-color: var(--shipcast-blue);
+      background: var(--shipcast-blue);
+      color: #ffffff;
+    }
+    .empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 18px;
+      color: var(--shipcast-slate);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    @media (max-width: 480px) {
+      .shell { padding: 14px; }
+      .topline { align-items: flex-start; }
+      .status { max-width: 96px; }
+      .hero h1 { font-size: 19px; }
+      .grid { grid-template-columns: 1fr; }
+      .kv { grid-template-columns: 1fr; gap: 3px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topline">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 1024 1024" aria-hidden="true">
+          <defs>
+            <radialGradient id="bgA" cx="22%" cy="78%" r="72%">
+              <stop offset="0%" stop-color="#1D4ED8"/>
+              <stop offset="48%" stop-color="#0F172A"/>
+              <stop offset="100%" stop-color="#070B14"/>
+            </radialGradient>
+            <radialGradient id="bgB" cx="78%" cy="16%" r="64%">
+              <stop offset="0%" stop-color="#7C2D12" stop-opacity=".92"/>
+              <stop offset="52%" stop-color="#0F172A" stop-opacity=".18"/>
+              <stop offset="100%" stop-color="#070B14" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="orange" x1="250" x2="760" y1="190" y2="860" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FDBA74"/>
+              <stop offset="40%" stop-color="#F97316"/>
+              <stop offset="100%" stop-color="#C2410C"/>
+            </linearGradient>
+            <linearGradient id="blue" x1="248" x2="780" y1="180" y2="820" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#BAE6FD"/>
+              <stop offset="48%" stop-color="#60A5FA"/>
+              <stop offset="100%" stop-color="#2563EB"/>
+            </linearGradient>
+          </defs>
+          <rect width="1024" height="1024" rx="224" fill="url(#bgA)"/>
+          <rect width="1024" height="1024" rx="224" fill="url(#bgB)"/>
+          <path d="M544 128 224 576h240l-48 320 384-512H560L544 128Z" fill="url(#orange)"/>
+          <path d="M544 128 224 576h240l-48 320 160-416h224L560 384 544 128Z" fill="url(#blue)" opacity=".94"/>
+        </svg>
+        <div class="brand-text">
+          <p class="brand-name">shipcast</p>
+          <div class="brand-subtitle">X publishing cockpit</div>
+        </div>
+      </div>
+      <div class="status" id="status">Ready</div>
+    </header>
+    <section id="root" class="empty">Waiting for Shipcast tool output.</section>
+  </main>
+  <script>
+    (function () {
+      var root = document.getElementById("root");
+      var statusEl = document.getElementById("status");
+      var latestInput = {};
+      var fallback = {
+        view: "status",
+        title: "Shipcast",
+        summary: "Run a Shipcast tool, then ask to render the result for an in-conversation view.",
+        status: "ready",
+        item_count: 0
+      };
+
+      function isObject(value) {
+        return value && typeof value === "object" && !Array.isArray(value);
+      }
+
+      function text(value, fallbackValue) {
+        if (value === undefined || value === null || value === "") return fallbackValue || "";
+        return String(value);
+      }
+
+      function shortText(value, fallbackValue) {
+        var output = text(value, fallbackValue);
+        return output.length > 220 ? output.slice(0, 217) + "..." : output;
+      }
+
+      function safeHref(value) {
+        var raw = text(value).trim();
+        if (!raw) return "";
+        try {
+          var parsed = new URL(raw);
+          return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : "";
+        } catch (err) {
+          return "";
+        }
+      }
+
+      function clear(node) {
+        while (node.firstChild) node.removeChild(node.firstChild);
+      }
+
+      function appendText(parent, tag, className, value) {
+        var el = document.createElement(tag);
+        if (className) el.className = className;
+        el.textContent = value;
+        parent.appendChild(el);
+        return el;
+      }
+
+      function pick(source, keys) {
+        if (!isObject(source)) return "";
+        for (var i = 0; i < keys.length; i += 1) {
+          var key = keys[i];
+          var value = source[key];
+          if (value !== undefined && value !== null && value !== "") return value;
+        }
+        return "";
+      }
+
+      function nestedPick(source, paths) {
+        if (!isObject(source)) return "";
+        for (var i = 0; i < paths.length; i += 1) {
+          var parts = paths[i].split(".");
+          var current = source;
+          for (var j = 0; j < parts.length; j += 1) {
+            current = isObject(current) ? current[parts[j]] : undefined;
+          }
+          if (current !== undefined && current !== null && current !== "") return current;
+        }
+        return "";
+      }
+
+      function compactValue(value) {
+        if (value === undefined || value === null || value === "") return "";
+        if (typeof value === "boolean") return value ? "Yes" : "No";
+        if (typeof value === "number") return String(value);
+        if (typeof value === "string") return shortText(value);
+        if (Array.isArray(value)) return value.map(function (item) { return compactValue(item); }).filter(Boolean).join(", ");
+        return shortText(JSON.stringify(value));
+      }
+
+      function makePill(label, tone) {
+        var pill = document.createElement("span");
+        pill.className = "pill" + (tone ? " " + tone : "");
+        pill.textContent = label;
+        return pill;
+      }
+
+      function itemTitle(item, view) {
+        if (view === "publications") {
+          return text(pick(item, ["product_name", "product", "title", "name"]), "Publication");
+        }
+        if (view === "preview") {
+          return text(pick(item, ["product_name", "product", "name", "title"]), "Product update preview");
+        }
+        return text(
+          pick(item, ["product_name", "name", "display_name", "username", "x_username", "id"]),
+          "Shipcast product"
+        );
+      }
+
+      function itemDescription(item, view) {
+        var direct = pick(item, ["description", "summary", "text", "tweet_text", "content", "message"]);
+        if (direct) return shortText(direct);
+        if (view === "accounts") {
+          var repo = nestedPick(item, ["github_repo", "repo", "github_repo_owner"]);
+          var account = pick(item, ["x_username", "twitter_username", "username", "screen_name"]);
+          if (account) return "Connected as @" + String(account).replace(/^@/, "");
+          if (repo) return "Repository: " + compactValue(repo);
+        }
+        return "";
+      }
+
+      function makeCard(item, view) {
+        var card = document.createElement("article");
+        card.className = "card";
+        appendText(card, "h2", "", itemTitle(item, view));
+        var description = itemDescription(item, view);
+        if (description) appendText(card, "p", "", description);
+
+        var row = document.createElement("div");
+        row.className = "meta-row";
+        var connected = pick(item, ["connected", "twitter_enabled", "x_connected", "has_x_account"]);
+        if (connected !== "") {
+          row.appendChild(makePill(connected ? "X connected" : "X not connected", connected ? "green" : ""));
+        }
+        var username = pick(item, ["x_username", "twitter_username", "username", "screen_name"]);
+        if (username) row.appendChild(makePill("@" + String(username).replace(/^@/, ""), "blue"));
+        var status = pick(item, ["status", "state"]);
+        if (status) row.appendChild(makePill(compactValue(status), "orange"));
+        if (row.childNodes.length) card.appendChild(row);
+        return card;
+      }
+
+      function normalizedPayload(result) {
+        var structured = isObject(result) && isObject(result.structuredContent)
+          ? result.structuredContent
+          : isObject(result) ? result : {};
+        var meta = isObject(result) && isObject(result._meta) ? result._meta : {};
+        var hidden = isObject(meta.shipcast) && isObject(meta.shipcast.widget)
+          ? meta.shipcast.widget
+          : isObject(meta.widget) ? meta.widget : {};
+        var merged = Object.assign({}, latestInput || {}, structured || {}, hidden || {});
+        if (!Array.isArray(merged.items)) merged.items = [];
+        if (!Array.isArray(merged.actions)) merged.actions = [];
+        if (!Array.isArray(merged.next_steps)) merged.next_steps = [];
+        if (!isObject(merged.detail)) merged.detail = {};
+        return Object.assign({}, fallback, merged);
+      }
+
+      function renderDetail(payload) {
+        var detail = payload.detail || {};
+        var keys = [
+          "product_id",
+          "product_name",
+          "username",
+          "x_username",
+          "tweet_id",
+          "published_at",
+          "scheduled_at",
+          "timezone",
+          "status",
+          "url",
+          "text",
+          "tweet_text",
+          "summary"
+        ];
+        var shown = [];
+        for (var i = 0; i < keys.length; i += 1) {
+          var key = keys[i];
+          if (detail[key] !== undefined && detail[key] !== null && detail[key] !== "") shown.push(key);
+        }
+        if (!shown.length) return null;
+        var wrap = document.createElement("div");
+        wrap.className = "detail";
+        shown.slice(0, 8).forEach(function (key) {
+          var row = document.createElement("div");
+          row.className = "kv";
+          appendText(row, "div", "key", key.replace(/_/g, " "));
+          appendText(row, "div", "value", compactValue(detail[key]));
+          wrap.appendChild(row);
+        });
+        return wrap;
+      }
+
+      function renderActions(payload) {
+        var actions = payload.actions || [];
+        var detail = payload.detail || {};
+        var url = safeHref(pick(detail, ["authorization_url", "connect_url", "url"]));
+        if (!actions.length && url) {
+          actions = [{ label: "Open Shipcast link", href: String(url), primary: true }];
+        }
+        if (!actions.length) return null;
+        var wrap = document.createElement("div");
+        wrap.className = "actions";
+        actions.slice(0, 4).forEach(function (action, index) {
+          var href = isObject(action) ? safeHref(action.href) : "";
+          var label = isObject(action) ? action.label : action;
+          var node = href ? document.createElement("a") : document.createElement("span");
+          node.className = "action" + (index === 0 || action.primary ? " primary" : "");
+          node.textContent = shortText(label, "Open");
+          if (href) {
+            node.href = href;
+            node.target = "_blank";
+            node.rel = "noreferrer noopener";
+          }
+          wrap.appendChild(node);
+        });
+        return wrap;
+      }
+
+      function renderSteps(payload) {
+        var steps = payload.next_steps || [];
+        if (!steps.length) return null;
+        var wrap = document.createElement("div");
+        wrap.className = "steps";
+        steps.slice(0, 5).forEach(function (step) {
+          wrap.appendChild(makePill(shortText(step), "blue"));
+        });
+        return wrap;
+      }
+
+      function render(result) {
+        var payload = normalizedPayload(result);
+        clear(root);
+        root.className = "hero";
+        statusEl.textContent = text(payload.status, "ready");
+
+        appendText(root, "h1", "", text(payload.title, "Shipcast"));
+        if (payload.summary) appendText(root, "p", "summary", shortText(payload.summary));
+
+        var metaRow = document.createElement("div");
+        metaRow.className = "meta-row";
+        metaRow.appendChild(makePill(text(payload.view, "status"), "blue"));
+        metaRow.appendChild(makePill(String(payload.item_count || payload.items.length || 0) + " items"));
+        if (payload.generated_at) metaRow.appendChild(makePill(new Date(payload.generated_at).toLocaleString()));
+        root.appendChild(metaRow);
+
+        if (payload.items.length) {
+          var grid = document.createElement("div");
+          grid.className = "grid";
+          payload.items.slice(0, 12).forEach(function (item) {
+            grid.appendChild(makeCard(isObject(item) ? item : { name: item }, payload.view));
+          });
+          root.appendChild(grid);
+        }
+
+        var detail = renderDetail(payload);
+        if (detail) root.appendChild(detail);
+        var actions = renderActions(payload);
+        if (actions) root.appendChild(actions);
+        var steps = renderSteps(payload);
+        if (steps) root.appendChild(steps);
+      }
+
+      function receiveToolResult(toolResult) {
+        render(toolResult || { structuredContent: fallback });
+      }
+
+      window.addEventListener("message", function (event) {
+        if (event.source !== window.parent) return;
+        var message = event.data;
+        if (!message || message.jsonrpc !== "2.0") return;
+        if (message.method === "ui/notifications/tool-input") {
+          latestInput = isObject(message.params) ? message.params : {};
+        }
+        if (message.method === "ui/notifications/tool-result") {
+          receiveToolResult(message.params);
+        }
+      }, { passive: true });
+
+      window.addEventListener("openai:set_globals", function (event) {
+        var globals = event.detail && event.detail.globals ? event.detail.globals : {};
+        latestInput = globals.toolInput || latestInput || {};
+        receiveToolResult({
+          structuredContent: globals.toolOutput || fallback,
+          _meta: globals.toolResponseMetadata || globals.toolResultMetadata || {}
+        });
+      }, { passive: true });
+
+      receiveToolResult({
+        structuredContent: window.openai && window.openai.toolOutput ? window.openai.toolOutput : fallback,
+        _meta: window.openai && window.openai.toolResponseMetadata ? window.openai.toolResponseMetadata : {}
+      });
+    })();
+  </script>
+</body>
+</html>`;
+
+export const resources = [
+  {
+    uri: SHIPCAST_WIDGET_URI,
+    name: "shipcast_conversation_widget",
+    title: "Shipcast conversation widget",
+    description:
+      "A low-dependency MCP Apps widget for rendering Shipcast accounts, previews, actions, and publication history inside a conversation.",
+    mimeType: SHIPCAST_WIDGET_MIME_TYPE,
+  },
+];
 
 export function normalizeBaseUrl(value = process.env.SHIPCAST_API_BASE_URL) {
   return String(value || DEFAULT_BASE_URL).replace(/\/+$/, "");
@@ -451,6 +1035,184 @@ function optionalNumber(args, name, fallback) {
   return number;
 }
 
+function isPlainObject(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function optionalString(args, name, fallback = "") {
+  const value = args?.[name];
+  if (value === undefined || value === null || value === "") return fallback;
+  return String(value).trim();
+}
+
+function safeExternalHref(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+      return parsed.toString();
+    }
+  } catch {
+    return "";
+  }
+  return "";
+}
+
+function optionalStringArray(args, name) {
+  const value = args?.[name];
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item ?? "").trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function optionalObjectArray(args, name, limit = 24) {
+  const value = args?.[name];
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item) => isPlainObject(item))
+    .slice(0, limit);
+}
+
+function enumValue(args, name, allowed, fallback) {
+  const value = optionalString(args, name, fallback);
+  if (!allowed.includes(value)) {
+    throw new Error(`${name} must be one of: ${allowed.join(", ")}.`);
+  }
+  return value;
+}
+
+function defaultRenderTitle(view) {
+  switch (view) {
+    case "accounts":
+      return "Shipcast X accounts";
+    case "account":
+      return "Shipcast X account";
+    case "preview":
+      return "Shipcast product update preview";
+    case "publications":
+      return "Shipcast publication history";
+    case "action":
+      return "Shipcast action result";
+    default:
+      return "Shipcast";
+  }
+}
+
+function summarizeRenderInput({ view, itemCount, status }) {
+  if (view === "accounts") {
+    return `Rendered ${itemCount} Shipcast product account${
+      itemCount === 1 ? "" : "s"
+    }.`;
+  }
+  if (view === "publications") {
+    return `Rendered ${itemCount} Shipcast publication${
+      itemCount === 1 ? "" : "s"
+    }.`;
+  }
+  if (view === "preview") return "Rendered a Shipcast product update preview.";
+  if (view === "action") return `Rendered a Shipcast ${status} action result.`;
+  return "Rendered a Shipcast status view.";
+}
+
+function sanitizeActions(args) {
+  return optionalObjectArray(args, "actions", 6)
+    .map((action) => ({
+      label: optionalString(action, "label", "Open"),
+      href: safeExternalHref(action.href),
+      description: optionalString(action, "description"),
+      primary: action.primary === true,
+    }))
+    .filter((action) => action.label);
+}
+
+function markMcpToolResult(result) {
+  return Object.defineProperty(result, MCP_TOOL_RESULT, {
+    value: true,
+    enumerable: false,
+  });
+}
+
+function isMcpToolResult(result) {
+  return Boolean(result?.[MCP_TOOL_RESULT]);
+}
+
+function renderWidgetToolResult(args = {}) {
+  const view = enumValue(args, "view", RENDER_VIEWS, "status");
+  const status = enumValue(args, "status", RENDER_STATUSES, "ready");
+  const items = optionalObjectArray(args, "items");
+  const detail = isPlainObject(args.detail) ? args.detail : {};
+  const actions = sanitizeActions(args);
+  const nextSteps = optionalStringArray(args, "next_steps");
+  const title = optionalString(args, "title", defaultRenderTitle(view));
+  const summary =
+    optionalString(args, "summary") ||
+    summarizeRenderInput({ view, itemCount: items.length, status });
+  const generatedAt = new Date().toISOString();
+  const structuredContent = {
+    view,
+    title,
+    summary,
+    status,
+    item_count: items.length,
+    generated_at: generatedAt,
+  };
+
+  return markMcpToolResult({
+    content: [
+      {
+        type: "text",
+        text: summary,
+      },
+    ],
+    structuredContent,
+    _meta: {
+      shipcast: {
+        widget: {
+          ...structuredContent,
+          items,
+          detail,
+          actions,
+          next_steps: nextSteps,
+        },
+      },
+    },
+  });
+}
+
+function readResource(uri) {
+  if (uri !== SHIPCAST_WIDGET_URI) {
+    throw new Error(`Unknown resource: ${uri}`);
+  }
+  return {
+    contents: [
+      {
+        uri: SHIPCAST_WIDGET_URI,
+        mimeType: SHIPCAST_WIDGET_MIME_TYPE,
+        text: SHIPCAST_WIDGET_HTML,
+        _meta: {
+          ui: {
+            prefersBorder: true,
+            csp: {
+              connectDomains: [],
+              resourceDomains: [],
+            },
+          },
+          "openai/widgetDescription":
+            "Renders Shipcast account, preview, action, and publication cards inside the conversation.",
+          "openai/widgetPrefersBorder": true,
+          "openai/widgetCSP": {
+            connect_domains: [],
+            resource_domains: [],
+          },
+        },
+      },
+    ],
+  };
+}
+
 export const tools = [
   {
     name: "shipcast_list_x_accounts",
@@ -661,6 +1423,112 @@ export const tools = [
       openWorldHint: false,
     },
   },
+  {
+    name: "shipcast_render_widget",
+    title: "Render Shipcast Widget",
+    description:
+      "Render an in-conversation Shipcast widget from data already returned by Shipcast tools. First call the relevant Shipcast data/action tool, then pass selected result fields to this presentation-only tool.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        view: {
+          type: "string",
+          enum: RENDER_VIEWS,
+          description:
+            "The widget layout to render: accounts, account, preview, publications, action, or status.",
+        },
+        title: {
+          type: "string",
+          description: "Short title shown at the top of the widget.",
+        },
+        summary: {
+          type: "string",
+          description:
+            "One concise sentence summarizing the Shipcast result for the user.",
+        },
+        status: {
+          type: "string",
+          enum: RENDER_STATUSES,
+          description:
+            "Visual state for the result. Defaults to ready.",
+          default: "ready",
+        },
+        items: {
+          type: "array",
+          description:
+            "Cards to render, such as products, X accounts, or publications.",
+          items: {
+            type: "object",
+            additionalProperties: true,
+          },
+        },
+        detail: {
+          type: "object",
+          description:
+            "Primary record or action result details. Keep secrets and raw OAuth tokens out of this field.",
+          additionalProperties: true,
+        },
+        actions: {
+          type: "array",
+          description:
+            "Optional safe links or next UI actions to show in the widget.",
+          items: {
+            type: "object",
+            properties: {
+              label: { type: "string" },
+              href: { type: "string" },
+              description: { type: "string" },
+              primary: { type: "boolean" },
+            },
+            required: ["label"],
+            additionalProperties: false,
+          },
+        },
+        next_steps: {
+          type: "array",
+          description:
+            "Optional short next steps or reminders to show as compact pills.",
+          items: { type: "string" },
+        },
+      },
+      required: ["view"],
+      additionalProperties: false,
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        view: { type: "string", enum: RENDER_VIEWS },
+        title: { type: "string" },
+        summary: { type: "string" },
+        status: { type: "string", enum: RENDER_STATUSES },
+        item_count: { type: "integer", minimum: 0 },
+        generated_at: { type: "string" },
+      },
+      required: [
+        "view",
+        "title",
+        "summary",
+        "status",
+        "item_count",
+        "generated_at",
+      ],
+      additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    _meta: {
+      ui: {
+        resourceUri: SHIPCAST_WIDGET_URI,
+      },
+      "openai/outputTemplate": SHIPCAST_WIDGET_URI,
+      "openai/toolInvocation/invoking": "Rendering Shipcast",
+      "openai/toolInvocation/invoked": "Rendered Shipcast",
+    },
+  },
 ];
 
 export async function callTool(name, args = {}) {
@@ -728,6 +1596,8 @@ export async function callTool(name, args = {}) {
           offset: optionalNumber(args, "offset", 0),
         },
       });
+    case "shipcast_render_widget":
+      return renderWidgetToolResult(args);
     default:
       throw new Error(`Unknown tool: ${name}`);
   }
@@ -757,19 +1627,23 @@ function toolResult(data) {
   };
 }
 
+function toToolResult(data) {
+  return isMcpToolResult(data) ? data : toolResult(data);
+}
+
 async function handleRequest(message) {
   const { id, method, params } = message;
 
   if (method === "initialize") {
     sendResult(id, {
       protocolVersion: params?.protocolVersion ?? "2025-06-18",
-      capabilities: { tools: {} },
+      capabilities: { tools: {}, resources: {} },
       serverInfo: {
         name: SERVER_NAME,
         version: SERVER_VERSION,
       },
       instructions:
-        "Use Shipcast tools to inspect connected X accounts, start X account connect flows, post directly to X through a connected product account, preview product updates, and run Shipcast's normal manual publish flow. Before posting, confirm which product_id and X account should be used.",
+        "Use Shipcast tools to inspect connected X accounts, start X account connect flows, post directly to X through a connected product account, preview product updates, and run Shipcast's normal manual publish flow. Before posting, confirm which product_id and X account should be used. When the user would benefit from a visual result, first call the relevant Shipcast data/action tool, then call shipcast_render_widget with the model-checked result.",
     });
     return;
   }
@@ -784,10 +1658,28 @@ async function handleRequest(message) {
     return;
   }
 
+  if (method === "resources/list") {
+    sendResult(id, { resources });
+    return;
+  }
+
+  if (method === "resources/read") {
+    try {
+      sendResult(id, readResource(params?.uri));
+    } catch (err) {
+      sendError(
+        id,
+        JsonRpcError.INVALID_PARAMS,
+        err instanceof Error ? err.message : String(err)
+      );
+    }
+    return;
+  }
+
   if (method === "tools/call") {
     try {
       const result = await callTool(params?.name, params?.arguments ?? {});
-      sendResult(id, toolResult(result));
+      sendResult(id, toToolResult(result));
     } catch (err) {
       sendError(
         id,
