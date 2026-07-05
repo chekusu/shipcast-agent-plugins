@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Shipcast</title>
+  <rect width="64" height="64" rx="14" fill="#0F172A"/>
+  <path d="M34 8 14 36h15l-3 20 24-32H35l-1-16Z" fill="#F97316"/>
+  <path d="M34 8 14 36h15l-3 20 10-26h14L35 24l-1-16Z" fill="#60A5FA" opacity=".9"/>
+</svg>

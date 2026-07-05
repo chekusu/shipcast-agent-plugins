@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "shipcast": {
+      "cwd": ".",
+      "command": "node",
+      "args": [
+        "./mcp/server.mjs"
+      ],
+      "env": {
+        "SHIPCAST_API_BASE_URL": "https://api.shipcast.dev"
+      }
+    }
+  }
+}

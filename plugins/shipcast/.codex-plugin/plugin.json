@@ -1,0 +1,46 @@
+{
+  "name": "shipcast",
+  "version": "0.1.0",
+  "description": "Operate Shipcast products and connected X accounts from local agents using browser-based authorization.",
+  "author": {
+    "name": "Shipcast",
+    "url": "https://shipcast.dev/"
+  },
+  "homepage": "https://shipcast.dev/",
+  "repository": "https://github.com/chekusu/shipcast-agent-plugins",
+  "license": "Proprietary",
+  "keywords": [
+    "shipcast",
+    "x",
+    "twitter",
+    "social",
+    "mcp",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Shipcast",
+    "shortDescription": "Post to X and manage Shipcast X accounts",
+    "longDescription": "Use Shipcast from local agents to inspect connected X accounts, start X account connection flows, post directly to X through a product account, preview AI product updates, publish Shipcast updates, and review publication history. Authorization is handled through Shipcast's browser or headless device flow; users do not paste API keys into MCP config.",
+    "developerName": "Shipcast",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://shipcast.dev/",
+    "privacyPolicyURL": "https://shipcast.dev/privacy",
+    "termsOfServiceURL": "https://shipcast.dev/terms",
+    "defaultPrompt": [
+      "List my Shipcast X accounts",
+      "Post this update to X through my Shipcast product",
+      "Preview and publish today's Shipcast product update"
+    ],
+    "composerIcon": "./assets/shipcast.svg",
+    "logo": "./assets/shipcast.svg",
+    "screenshots": [],
+    "brandColor": "#2563EB"
+  }
+}

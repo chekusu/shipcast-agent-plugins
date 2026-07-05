@@ -1,0 +1,15 @@
+{
+  "name": "shipcast",
+  "owner": {
+    "name": "Shipcast"
+  },
+  "description": "Shipcast agent plugins for managing Shipcast products and connected X accounts.",
+  "plugins": [
+    {
+      "name": "shipcast",
+      "source": "./plugins/shipcast",
+      "description": "Post to X and manage Shipcast X accounts from local agents.",
+      "category": "developer-tools"
+    }
+  ]
+}

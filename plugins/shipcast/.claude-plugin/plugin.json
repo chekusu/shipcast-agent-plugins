@@ -1,0 +1,9 @@
+{
+  "name": "shipcast",
+  "description": "Operate Shipcast products and connected X accounts from Claude Code using browser-based authorization.",
+  "author": {
+    "name": "Shipcast"
+  },
+  "homepage": "https://shipcast.dev/",
+  "repository": "https://github.com/chekusu/shipcast-agent-plugins"
+}

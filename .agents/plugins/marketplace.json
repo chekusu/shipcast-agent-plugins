@@ -1,0 +1,20 @@
+{
+  "name": "shipcast",
+  "interface": {
+    "displayName": "Shipcast"
+  },
+  "plugins": [
+    {
+      "name": "shipcast",
+      "source": {
+        "source": "local",
+        "path": "./plugins/shipcast"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
