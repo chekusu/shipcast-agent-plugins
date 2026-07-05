@@ -1,6 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title">
   <title id="title">Shipcast</title>
-  <rect width="64" height="64" rx="14" fill="#0F172A"/>
-  <path d="M34 8 14 36h15l-3 20 24-32H35l-1-16Z" fill="#F97316"/>
-  <path d="M34 8 14 36h15l-3 20 10-26h14L35 24l-1-16Z" fill="#60A5FA" opacity=".9"/>
+  <defs>
+    <radialGradient id="bgA" cx="22%" cy="78%" r="72%">
+      <stop offset="0%" stop-color="#1D4ED8"/>
+      <stop offset="48%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#070B14"/>
+    </radialGradient>
+    <radialGradient id="bgB" cx="78%" cy="16%" r="64%">
+      <stop offset="0%" stop-color="#7C2D12" stop-opacity=".92"/>
+      <stop offset="52%" stop-color="#0F172A" stop-opacity=".18"/>
+      <stop offset="100%" stop-color="#070B14" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="orange" x1="250" x2="760" y1="190" y2="860" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FDBA74"/>
+      <stop offset="40%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#C2410C"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="248" x2="780" y1="180" y2="820" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#BAE6FD"/>
+      <stop offset="48%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="28" stdDeviation="24" flood-color="#020617" flood-opacity=".46"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="url(#bgA)"/>
+  <rect width="1024" height="1024" rx="224" fill="url(#bgB)"/>
+  <path d="M544 128 224 576h240l-48 320 384-512H560L544 128Z" fill="url(#orange)" filter="url(#shadow)"/>
+  <path d="M544 128 224 576h240l-48 320 160-416h224L560 384 544 128Z" fill="url(#blue)" opacity=".94"/>
+  <path d="M544 128 224 576h240l-48 320 160-416h224L560 384 544 128Z" fill="#E0F2FE" opacity=".08"/>
 </svg>
