@@ -1,6 +1,6 @@
 {
   "name": "shipcast",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Operate Shipcast products and connected X accounts from local agents using browser-based authorization.",
   "author": {
     "name": "Shipcast",

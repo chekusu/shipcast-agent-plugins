@@ -14,13 +14,13 @@ Install:
 codex plugin marketplace add https://github.com/chekusu/shipcast-agent-plugins.git --ref main --sparse .agents/plugins --sparse plugins/shipcast
 codex plugin add shipcast@shipcast
 codex mcp get shipcast
-node "$HOME/.codex/plugins/cache/shipcast/shipcast/0.1.0/mcp/server.mjs" auth
+node "$HOME/.codex/plugins/cache/shipcast/shipcast/0.1.1/mcp/server.mjs" auth
 ```
 
 Headless login:
 
 ```bash
-node "$HOME/.codex/plugins/cache/shipcast/shipcast/0.1.0/mcp/server.mjs" auth --headless
+node "$HOME/.codex/plugins/cache/shipcast/shipcast/0.1.1/mcp/server.mjs" auth --headless
 ```
 
 Update:
@@ -28,7 +28,7 @@ Update:
 ```bash
 codex plugin marketplace upgrade shipcast
 codex plugin add shipcast@shipcast
-node "$HOME/.codex/plugins/cache/shipcast/shipcast/0.1.0/mcp/server.mjs" status
+node "$HOME/.codex/plugins/cache/shipcast/shipcast/0.1.1/mcp/server.mjs" status
 ```
 
 Restart the Codex session after install or update.
@@ -88,6 +88,7 @@ Run the stdio smoke test from this repository:
 
 ```bash
 node scripts/smoke-stdio.mjs
+node --test scripts/device-auth.test.mjs
 ```
 
 The script starts `plugins/shipcast/mcp/server.mjs` over stdio and verifies
