@@ -9,7 +9,7 @@ import { pathToFileURL } from "node:url";
 
 export const DEFAULT_BASE_URL = "https://api.shipcast.dev";
 const SERVER_NAME = "Shipcast MCP";
-const SERVER_VERSION = "0.1.0";
+const SERVER_VERSION = "0.1.1";
 const AUTH_SKEW_MS = 5 * 60 * 1000;
 const AUTH_TIMEOUT_MS = 5 * 60 * 1000;
 const JsonRpcError = {
@@ -950,7 +950,7 @@ async function browserAuth() {
   }
 }
 
-async function postUnauthenticated(path, body) {
+async function postUnauthenticated(path, body, { signal } = {}) {
   const response = await fetch(buildUrl(path), {
     method: "POST",
     headers: {
@@ -959,12 +959,10 @@ async function postUnauthenticated(path, body) {
       "User-Agent": "shipcast-codex-plugin",
     },
     body: JSON.stringify(body ?? {}),
+    signal,
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok && response.status !== 202) {
-    throw new Error(data?.error || response.statusText);
-  }
-  return { status: response.status, data };
+  return { response, data };
 }
 
 function sleep(ms) {
@@ -975,6 +973,7 @@ async function headlessAuth() {
   const started = await postUnauthenticated("/auth/agent/device/start", {
     client: "Shipcast MCP",
   });
+  if (!started.response.ok) throw new Error(started.data?.error || started.response.statusText);
   const info = started.data;
   console.log("Open this URL in a browser to authorize Shipcast MCP:");
   console.log(info.verification_uri_complete);
@@ -982,11 +981,24 @@ async function headlessAuth() {
   const deadline = Date.now() + (info.expires_in || 600) * 1000;
   const intervalMs = Math.max(1, info.interval || 3) * 1000;
   while (Date.now() < deadline) {
-    await sleep(intervalMs);
-    const poll = await postUnauthenticated("/auth/agent/device/poll", {
-      device_code: info.device_code,
-    });
-    if (poll.status === 202) continue;
+    const beforeSleep = deadline - Date.now();
+    await sleep(Math.min(intervalMs, beforeSleep));
+    const remaining = deadline - Date.now();
+    if (intervalMs >= beforeSleep || remaining <= 0) break;
+
+    let poll;
+    try {
+      poll = await postUnauthenticated("/auth/agent/device/poll", {
+        device_code: info.device_code,
+      }, { signal: AbortSignal.timeout(remaining) });
+    } catch (error) {
+      if (error.name === "TimeoutError") break;
+      if (error instanceof TypeError && error.cause) continue;
+      throw error;
+    }
+    const { status } = poll.response;
+    if (status === 202 || status === 408 || status === 429 || status >= 500) continue;
+    if (!poll.response.ok) throw new Error(poll.data?.error || poll.response.statusText);
     if (poll.data?.status === "authorized" && poll.data.token) {
       const result = {
         source: "cache",
